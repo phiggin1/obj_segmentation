@@ -35,6 +35,7 @@ class ImageSegment:
 		self.rgb_image_sub = message_filters.Subscriber('/camera/rgb/image_raw', Image)
 		self.depth_image_sub = message_filters.Subscriber('/camera/depth/image_raw', Image)
 		self.object_clusters_sub = message_filters.Subscriber('/object_clusters', SegmentedClustersArray)
+
 		self.ts = message_filters.TimeSynchronizer([self.rgb_image_sub, self.depth_image_sub, self.object_clusters_sub], 10)
 		self.ts.registerCallback(self.callback)
 
@@ -46,6 +47,7 @@ class ImageSegment:
 
 		rospy.spin()
 
+	#grap the pointclouds of all objects and the depth/rgb image for the same frame
 	def callback(self, rgb_ros_image, depth_ros_image, object_clusters):
 		self.object_clusters = object_clusters
 		self.rgb = np.asarray(self.bridge.imgmsg_to_cv2(rgb_ros_image, desired_encoding="passthrough"))
@@ -54,6 +56,8 @@ class ImageSegment:
 	def process_clusters(self, req):
 		print("recv serv req")
 		object_array = ObjectArray()
+		object_array.header = self.object_clusters.header
+		#iterate through all the objects
 		for i, pc in enumerate(self.object_clusters.clusters):
 			#print("obj %d" % i)
 
@@ -65,6 +69,7 @@ class ImageSegment:
 			max_y = -1000.0
 			max_z = -1000.0
 
+			#for each object get a bounding box
 			for p in pc2.read_points(pc):
 				if p[0] > max_x:
 					max_x = p[0]
@@ -89,6 +94,8 @@ class ImageSegment:
 			min_pix = self.cam_model.project3dToPixel( [ min_x, min_y, min_z ] )
 			max_pix = self.cam_model.project3dToPixel( [ max_x, max_y, max_z ] )
 
+			#25 is to try and avoid clipping the object off
+			#this might not be needed/a bad idea
 			u_min = max(int(math.floor(min_pix[0]))-25, 0)
 			v_min = max(int(math.floor(min_pix[1]))-25, 0)
 			

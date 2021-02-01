@@ -36,6 +36,7 @@ class segmentation {
 			ros::param::get("~cluster_tolerance", cluster_tolerance);
 			ros::param::get("~min_cluster_size", min_cluster_size);
 			ros::param::get("~max_cluster_size", max_cluster_size);
+			ros::param::get("~leaf_size", leaf_size);
 
       // define the subscriber and publisher
 			m_sub = m_nh.subscribe ("/camera/depth/points", 1, &segmentation::cloud_cb, this);
@@ -43,8 +44,8 @@ class segmentation {
 			m_pub_tbl = m_nh.advertise<sensor_msgs::PointCloud2> ("/table",1);
 			m_clusterPub = m_nh.advertise<husky_perception::SegmentedClustersArray> ("object_clusters",1);
 
-			ROS_INFO("\n min_range: %f\n max_range: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
-        min_range, max_range, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
+			ROS_INFO("\n leaf_size: %f\n min_range: %f\n max_range: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
+        leaf_size, min_range, max_range, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
 	  }
 
 	private:
@@ -59,6 +60,7 @@ class segmentation {
 		double cluster_tolerance = 0.02; //2cm
 		int min_cluster_size = 1500;
 		int max_cluster_size = 25000;
+		double leaf_size = 0.01;
     std::string  input_cloud = "/camera/depth/points";
 		void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
 
@@ -83,7 +85,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PCLPointCloud2Ptr cloudFilteredPtr (cloud_filtered);
   pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
   sor.setInputCloud (cloudPtr);
-  sor.setLeafSize (0.01, 0.01, 0.01);
+  sor.setLeafSize (leaf_size, leaf_size, leaf_size);
   sor.filter (*cloudFilteredPtr);
 
   pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud = new pcl::PointCloud<pcl::PointXYZRGB>;
@@ -131,13 +133,13 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // Create the filtering object
   pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 
-  //extract.setInputCloud (xyzCloudPtrFiltered);
   extract.setInputCloud (xyzCloudPtrFiltered);
   extract.setIndices (inliers);
   extract.setNegative (true);
   extract.filter (*xyzCloudPtrRansacFiltered);
 
-  //get hhe points for the tabel
+  //get the points for the table
+  //Possible TODO repeat until no more surfaces found?
   extract.setInputCloud (xyzCloudPtrFiltered);
   extract.setIndices (inliers);
   extract.setNegative (false);
@@ -184,7 +186,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   sensor_msgs::PointCloud2 output;
   pcl::PCLPointCloud2 outputPCL;
 
-  // here, cluster_indices is a vector of indices for each cluster. iterate through each indices object to work with them seporately
+  // here, cluster_indices is a vector of indices for each cluster. iterate through each indices object to work with them seperatly
   int i = 0;
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it) {
     // create a pcl object to hold the extracted cluster
