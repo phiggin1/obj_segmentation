@@ -1,0 +1,22 @@
+<launch>
+  <arg name="max_range" default="2.0"/>
+  <arg name="min_range" default="0.8"/>
+  <arg name="distance_threshold" default="0.005"/>
+  <arg name="cluster_tolerance" default="0.02"/>
+  <arg name="min_cluster_size" default="75"/>
+  <arg name="max_cluster_size" default="25000"/>
+
+  <node name= "object_segmentation" pkg= "obj_segmentation" type= "segmentation" output="screen" respawn= "false">
+    <param name="max_range"		value="$(arg max_range)"/>
+    <param name="min_range"		value="$(arg min_range)"/>
+    <param name="distance_threshold"	value="$(arg distance_threshold)"/>
+    <param name="cluster_tolerance"	value="$(arg cluster_tolerance)"/>
+    <param name="min_cluster_size"	value="$(arg min_cluster_size)"/>
+    <param name="max_cluster_size"	value="$(arg max_cluster_size)"/>
+  </node>
+
+  <node pkg="obj_segmentation" name="image_segmentation" type="image_segmentation.py" output="screen"></node>
+  
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"></include>
+</launch>
+
