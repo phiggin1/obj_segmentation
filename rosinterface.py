@@ -64,7 +64,7 @@ for im in img:
     axarr[1].imshow(im[2])
     plt.show()
     a.idicate(im[0])
-    time.sleep(5.0)
+    time.sleep(2.0)
 
 
 
