@@ -1,6 +1,6 @@
 <launch>
 
-  <rosparam file="$(find obj_segmentation)/config/umbc_husky.yaml"/>
+  <rosparam file="$(find obj_segmentation)/config/filter.yaml"/>
   <node name= "body_filter" pkg= "obj_segmentation" type= "body_filter" output="screen" respawn= "false">
   </node>
 

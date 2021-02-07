@@ -23,7 +23,7 @@ Author: Sean Cassero
 #include <pcl/filters/extract_indices.h>
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <husky_perception/SegmentedClustersArray.h>
+#include <obj_segmentation/SegmentedClustersArray.h>
 
 class segmentation {
 	public:
@@ -42,7 +42,7 @@ class segmentation {
 			m_sub = m_nh.subscribe ("/camera/depth/points", 1, &segmentation::cloud_cb, this);
 			m_pub_obj = m_nh.advertise<sensor_msgs::PointCloud2> ("/objects",1);
 			m_pub_tbl = m_nh.advertise<sensor_msgs::PointCloud2> ("/table",1);
-			m_clusterPub = m_nh.advertise<husky_perception::SegmentedClustersArray> ("object_clusters",1);
+			m_clusterPub = m_nh.advertise<obj_segmentation::SegmentedClustersArray> ("object_clusters",1);
 
 			ROS_INFO("\n leaf_size: %f\n min_range: %f\n max_range: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
         leaf_size, min_range, max_range, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
@@ -71,7 +71,7 @@ class segmentation {
 void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
   // declare an instance of the SegmentedClustersArray message
-  husky_perception::SegmentedClustersArray CloudClusters;
+  obj_segmentation::SegmentedClustersArray CloudClusters;
   CloudClusters.header = cloud_msg->header;
 
   // Convert to PCL data type
