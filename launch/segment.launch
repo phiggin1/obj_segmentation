@@ -1,4 +1,7 @@
 <launch>
+
+  <include file="$(find cam_info)/launch/color_depth_image_to_pointcloud.launch" />
+
   <arg name="max_range" default="2.0"/>
   <arg name="min_range" default="0.8"/>
   <arg name="distance_threshold" default="0.005"/>
@@ -17,6 +20,5 @@
 
   <node pkg="obj_segmentation" name="image_segmentation" type="image_segmentation.py" output="screen"></node>
   
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"></include>
 </launch>
 

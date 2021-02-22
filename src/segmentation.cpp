@@ -6,8 +6,6 @@ Author: Sean Cassero
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <vision_msgs/Detection3D.h>
-#include <vision_msgs/Detection3DArray.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -39,7 +37,7 @@ class segmentation {
 			ros::param::get("~leaf_size", leaf_size);
 
       // define the subscriber and publisher
-			m_sub = m_nh.subscribe ("/camera/depth/points", 1, &segmentation::cloud_cb, this);
+			m_sub = m_nh.subscribe ("/points", 1, &segmentation::cloud_cb, this);
 			m_pub_obj = m_nh.advertise<sensor_msgs::PointCloud2> ("/objects",1);
 			m_pub_tbl = m_nh.advertise<sensor_msgs::PointCloud2> ("/table",1);
 			m_clusterPub = m_nh.advertise<obj_segmentation::SegmentedClustersArray> ("object_clusters",1);
@@ -61,7 +59,7 @@ class segmentation {
 		int min_cluster_size = 1500;
 		int max_cluster_size = 25000;
 		double leaf_size = 0.01;
-    std::string  input_cloud = "/camera/depth/points";
+    std::string  input_cloud = "/points";
 		void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
 
 }; // end class definition
@@ -153,7 +151,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   tbl_output.header = cloud_msg->header;
   CloudClusters.surfaces.push_back(tbl_output);
   //publish the table
-  m_pub_tbl.publish(tbl_output);
+  //m_pub_tbl.publish(tbl_output);
 
   //get the points for the objects
   // declare the output variable instances
@@ -206,7 +204,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
     output.header = cloud_msg->header;
 
-    m_pub_obj.publish(output);
+    //m_pub_obj.publish(output);
 
     // add the cluster to the array message
     CloudClusters.clusters.push_back(output);
