@@ -1,24 +1,29 @@
 <launch>
-
-  <include file="$(find cam_info)/launch/color_depth_image_to_pointcloud.launch" />
-
-  <arg name="max_range" default="2.0"/>
-  <arg name="min_range" default="0.8"/>
-  <arg name="distance_threshold" default="0.005"/>
+  <arg name="minX" default="-10.0"/>
+  <arg name="maxX" default="10.0"/>
+  <arg name="minY" default="-0.3"/>
+  <arg name="maxY" default="0.125"/>
+  <arg name="minZ" default="0.3"/>
+  <arg name="maxZ" default="2.0"/>
+  <arg name="distance_threshold" default="0.01"/>
   <arg name="cluster_tolerance" default="0.02"/>
-  <arg name="min_cluster_size" default="75"/>
+  <arg name="min_cluster_size" default="100"/>
   <arg name="max_cluster_size" default="25000"/>
+  <arg name="input_cloud" default="/points"/>
 
   <node name= "object_segmentation" pkg= "obj_segmentation" type= "segmentation" output="screen" respawn= "false">
-    <param name="max_range"		value="$(arg max_range)"/>
-    <param name="min_range"		value="$(arg min_range)"/>
+    <param name="minX"		value="$(arg minX)"/>
+    <param name="maxX"		value="$(arg maxX)"/>
+    <param name="minY"		value="$(arg minY)"/>
+    <param name="maxY"		value="$(arg maxY)"/>
+    <param name="minZ"		value="$(arg minZ)"/>
+    <param name="maxZ"		value="$(arg maxZ)"/>
     <param name="distance_threshold"	value="$(arg distance_threshold)"/>
     <param name="cluster_tolerance"	value="$(arg cluster_tolerance)"/>
     <param name="min_cluster_size"	value="$(arg min_cluster_size)"/>
     <param name="max_cluster_size"	value="$(arg max_cluster_size)"/>
+    <param name="input_cloud" 		value="$(arg input_cloud)"/>
   </node>
-
-  <node pkg="obj_segmentation" name="image_segmentation" type="image_segmentation.py" output="screen"></node>
   
 </launch>
 

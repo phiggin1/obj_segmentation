@@ -1,9 +1,26 @@
 <launch>
 
-  <rosparam file="$(find obj_segmentation)/config/filter.yaml"/>
-  <node name= "body_filter" pkg= "obj_segmentation" type= "body_filter" output="screen" respawn= "false">
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/camera/depth/points" />
+    <remap from="~output" to="/points" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.01
+      filter_limit_max: 1.5
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
   </node>
 
+  <arg name="input_cloud" default="/points"/>
+  <arg name="output_cloud" default="/points_filtered"/>
+  <rosparam file="$(find obj_segmentation)/config/filter.yaml"/>
+  <node name= "body_filter" pkg= "obj_segmentation" type= "body_filter" output="screen" respawn= "false">
+    <param name="input_cloud" 		value="$(arg input_cloud)"/>
+    <param name="output_cloud" 		value="$(arg output_cloud)"/>
+  </node>
 
 </launch>
 
