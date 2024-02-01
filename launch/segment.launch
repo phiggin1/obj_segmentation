@@ -1,10 +1,10 @@
 <launch>
   <arg name="minX" default="-10.0"/>
   <arg name="maxX" default="10.0"/>
-  <arg name="minY" default="-0.3"/>
-  <arg name="maxY" default="0.125"/>
-  <arg name="minZ" default="0.3"/>
-  <arg name="maxZ" default="2.0"/>
+  <arg name="minY" default="-10.0"/>
+  <arg name="maxY" default="10.0"/>
+  <arg name="minZ" default="-10.0"/>
+  <arg name="maxZ" default="10.0"/>
   <arg name="distance_threshold" default="0.01"/>
   <arg name="cluster_tolerance" default="0.02"/>
   <arg name="min_cluster_size" default="100"/>
