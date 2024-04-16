@@ -24,33 +24,6 @@ Author: Sean Cassero
 #include <obj_segmentation/SegmentedClustersArray.h>
 
 class segmentation {
-	public:
-		explicit segmentation(ros::NodeHandle nh) : m_nh(nh)  {
-      ros::param::get("~input_cloud", input_cloud);
-			ros::param::get("~minX", minX);
-			ros::param::get("~maxX", maxX);
-			ros::param::get("~minY", minY);
-			ros::param::get("~maxY", maxY);
-			ros::param::get("~minZ", minZ);
-			ros::param::get("~maxZ", maxZ);
-			ros::param::get("~distance_threshold", distance_threshold);
-			ros::param::get("~cluster_tolerance", cluster_tolerance);
-			ros::param::get("~min_cluster_size", min_cluster_size);
-			ros::param::get("~max_cluster_size", max_cluster_size);
-			ros::param::get("~leaf_size", leaf_size);
-
-      // define the subscriber and publisher
-			m_sub = m_nh.subscribe (input_cloud.c_str(), 1, &segmentation::cloud_cb, this);
-			m_pub_obj = m_nh.advertise<sensor_msgs::PointCloud2> ("/objects",1);
-			m_pub_tbl = m_nh.advertise<sensor_msgs::PointCloud2> ("/table",1);
-			m_clusterPub = m_nh.advertise<obj_segmentation::SegmentedClustersArray> ("object_clusters",1);
-
-			ROS_INFO("\n leaf_size: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
-        				leaf_size, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
-			ROS_INFO("\n minX: %f\n maxX: %f\n minY: %f\n maxY: %f\n minZ: %f\n maxZ: %f\n", 
-       				 minX, maxX, minY, maxY, minZ, maxZ);
-	  }
-
 	private:
 		ros::NodeHandle m_nh;
 		ros::Publisher m_pub_obj;
@@ -69,7 +42,38 @@ class segmentation {
 		int max_cluster_size = 25000;
 		double leaf_size = 0.01;
 		std::string  input_cloud = "/points";
+		std::string  output_cloud = "/points";
+		std::string  debug_output_cloud = "/points";
 		void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
+
+	public:
+		explicit segmentation(ros::NodeHandle nh) : m_nh(nh)  {
+      ros::param::get("~debug_output_cloud", debug_output_cloud);
+      ros::param::get("~input_cloud", input_cloud);
+      ros::param::get("~output_cloud", output_cloud);
+			ros::param::get("~minX", minX);
+			ros::param::get("~maxX", maxX);
+			ros::param::get("~minY", minY);
+			ros::param::get("~maxY", maxY);
+			ros::param::get("~minZ", minZ);
+			ros::param::get("~maxZ", maxZ);
+			ros::param::get("~distance_threshold", distance_threshold);
+			ros::param::get("~cluster_tolerance", cluster_tolerance);
+			ros::param::get("~min_cluster_size", min_cluster_size);
+			ros::param::get("~max_cluster_size", max_cluster_size);
+			ros::param::get("~leaf_size", leaf_size);
+
+      // define the subscriber and publisher
+			m_sub = m_nh.subscribe (input_cloud.c_str(), 1, &segmentation::cloud_cb, this);
+			m_pub_obj = m_nh.advertise<sensor_msgs::PointCloud2> (debug_output_cloud,1);
+			m_pub_tbl = m_nh.advertise<sensor_msgs::PointCloud2> ("/table",1);
+			m_clusterPub = m_nh.advertise<obj_segmentation::SegmentedClustersArray> (output_cloud,1);
+
+			ROS_INFO("\n leaf_size: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
+        				leaf_size, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
+			ROS_INFO("\n minX: %f\n maxX: %f\n minY: %f\n maxY: %f\n minZ: %f\n maxZ: %f\n", 
+       				 minX, maxX, minY, maxY, minZ, maxZ);
+	  }
 
 }; // end class definition
 
@@ -201,7 +205,6 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr clusterPtr (cluster);
 
     // now we are in a vector of indices pertaining to a single cluster.
-    // Assign each point corresponding to this cluster in xyzCloudPtrPassthroughFiltered a specific color for identification purposes
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
         clusterPtr->points.push_back(xyzCloudPtrRansacFiltered->points[*pit]);
         all_objectsPtr->points.push_back(xyzCloudPtrRansacFiltered->points[*pit]);
@@ -217,6 +220,9 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     i++;
   }
 
+  ros::Time now = ros::Time::now();
+
+
   pcl::PCLPointCloud2 all_objectsPCL;
   sensor_msgs::PointCloud2 all_objects_output;
   // convert to pcl::PCLPointCloud2
@@ -224,9 +230,11 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // Convert to ROS data type
   pcl_conversions::fromPCL(all_objectsPCL, all_objects_output);
   all_objects_output.header = cloud_msg->header;
+  all_objects_output.header.stamp = now;
   m_pub_obj.publish(all_objects_output);
 
   ROS_INFO("#clusters: %d\n", i);
+  CloudClusters.header.stamp = now;
   m_clusterPub.publish(CloudClusters);
 }
 
