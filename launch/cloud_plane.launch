@@ -1,0 +1,13 @@
+<launch>
+
+
+
+  <arg name="input_cloud" default="/unity/camera/left/depth/points"/>
+  <arg name="output_cloud" default="/unity/camera/left/depth/points_filtered"/>
+  <node name= "cloud_plane" pkg= "obj_segmentation" type= "cloud_plane" output="screen" respawn= "false">
+    <param name="input_cloud" 		value="$(arg input_cloud)"/>
+    <param name="output_cloud" 		value="$(arg output_cloud)"/>
+  </node>
+
+</launch>
+
