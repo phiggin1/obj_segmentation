@@ -107,7 +107,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFiltered (xyz_cloud_filtered);
 
   // Create the filtering object
-  pcl::    CropBox<pcl::PointXYZRGB> pass;
+  pcl::CropBox<pcl::PointXYZRGB> pass;
   pass.setInputCloud (xyzCloudPtr);
   pass.setMin(Eigen::Vector4f(minX, minY, minZ, 1.0));
   pass.setMax(Eigen::Vector4f(maxX, maxY, maxZ, 1.0));
@@ -155,6 +155,38 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   m_pub_objects.publish(objects_output);
 
 
+  int count = 0;
+  float running_x = 0.0;
+  float running_y = 0.0;
+  float running_z = 0.0;
+  float x,y,z;
+/*
+  for (int index=0; index < xyzCloudPtrRansacFiltered->points.size(); index++)  
+  {
+    //std::cout<<index<<std::endl;
+    //std::cout<<xyzCloudPtrRansacFiltered->points[index]<<std::endl;
+    //std::cout<<xyzCloudPtrRansacFiltered->points[index].x<<std::endl;
+    //std::cout<<xyzCloudPtrRansacFiltered->points[index].y<<std::endl;
+    //std::cout<<xyzCloudPtrRansacFiltered->points[index].z<<std::endl;
+    x = xyzCloudPtrRansacFiltered->points[index].x;
+    y = xyzCloudPtrRansacFiltered->points[index].y;
+    z = xyzCloudPtrRansacFiltered->points[index].z;
+
+    running_x += x;
+    running_y += y;
+    running_z += z;
+    count++;
+
+  }
+
+  x = running_x/count;
+  y = running_y/count;
+  z = running_z/count;
+*/
+    x = xyzCloudPtrRansacFiltered->points[0].x;
+    y = xyzCloudPtrRansacFiltered->points[0].y;
+    z = xyzCloudPtrRansacFiltered->points[0].z;
+
   float a = coefficients->values[0];
   float b = coefficients->values[1];
   float c = coefficients->values[2];
@@ -178,7 +210,8 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   float pitch = acos(cos_theta_y);
   float yaw = acos(cos_theta_z);
 
-  ROS_INFO("roll:%f pitch:%f yaw:%f", roll, pitch, yaw);
+  ROS_INFO("x:%f y:%f z:%f", x,y,z);
+  ROS_INFO("roll:%f pitch:%f yaw:%f", roll*(180/3.14), pitch*(180/3.14), yaw*(180/3.14));
 
   ros::Time now = ros::Time::now();
   geometry_msgs::PoseStamped pose_stamped;
@@ -194,6 +227,10 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   ROS_INFO("qx:%f qy:%f qz:%f qw:%f", qx, qy, qz, qw);
   ROS_INFO("============================================");
+  pose_stamped.pose.position.x = x;
+  pose_stamped.pose.position.y = y;
+  pose_stamped.pose.position.z = z;
+
   pose_stamped.pose.orientation.x = qx;
   pose_stamped.pose.orientation.y = qy;
   pose_stamped.pose.orientation.z = qz;

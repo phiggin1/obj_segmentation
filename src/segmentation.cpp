@@ -51,12 +51,7 @@ class segmentation {
       ros::param::get("~debug_output_cloud", debug_output_cloud);
       ros::param::get("~input_cloud", input_cloud);
       ros::param::get("~output_cloud", output_cloud);
-			ros::param::get("~minX", minX);
-			ros::param::get("~maxX", maxX);
-			ros::param::get("~minY", minY);
-			ros::param::get("~maxY", maxY);
-			ros::param::get("~minZ", minZ);
-			ros::param::get("~maxZ", maxZ);
+
 			ros::param::get("~distance_threshold", distance_threshold);
 			ros::param::get("~cluster_tolerance", cluster_tolerance);
 			ros::param::get("~min_cluster_size", min_cluster_size);
@@ -71,8 +66,7 @@ class segmentation {
 
 			ROS_INFO("\n leaf_size: %f\n distance_threshold: %f\n cluster_tolerance: %f\n min_cluster_size: %d\n max_cluster_size: %d\n input_cloud: %s\n", 
         				leaf_size, distance_threshold, cluster_tolerance, min_cluster_size, max_cluster_size, input_cloud.c_str());
-			ROS_INFO("\n minX: %f\n maxX: %f\n minY: %f\n maxY: %f\n minZ: %f\n maxZ: %f\n", 
-       				 minX, maxX, minY, maxY, minZ, maxZ);
+
 	  }
 
 }; // end class definition
@@ -87,10 +81,20 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   // Convert to PCL data type
   // Container for original & filtered data
+  
   pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2;
   pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
   pcl_conversions::toPCL(*cloud_msg, *cloud);
 
+
+
+  // create a pcl object to hold the passthrough filtered results
+  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud = new pcl::PointCloud<pcl::PointXYZRGB>;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtr (xyz_cloud);
+
+  pcl::fromPCLPointCloud2(*cloudPtr, *xyzCloudPtr);
+
+/*
   // Perform voxel grid downsampling filtering
   pcl::PCLPointCloud2* cloud_filtered = new pcl::PCLPointCloud2;
   pcl::PCLPointCloud2Ptr cloudFilteredPtr (cloud_filtered);
@@ -119,6 +123,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   //pass.setFilterLimits (min_range, max_range);
   //pass.setFilterLimitsNegative (true);
   pass.filter (*xyzCloudPtrFiltered);
+*/
 
   // create a pcl object to hold the ransac filtered results
   pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_ransac_filtered = new pcl::PointCloud<pcl::PointXYZRGB>;
@@ -138,19 +143,19 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   seg1.setModelType (pcl::SACMODEL_PLANE);
   seg1.setMethodType (pcl::SAC_RANSAC);
   seg1.setDistanceThreshold (distance_threshold);
-  seg1.setInputCloud (xyzCloudPtrFiltered);
+  seg1.setInputCloud (xyzCloudPtr);
   seg1.segment (*inliers, *coefficients);
 
   // Create the filtering object
   pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-  extract.setInputCloud (xyzCloudPtrFiltered);
+  extract.setInputCloud (xyzCloudPtr);
   extract.setIndices (inliers);
   extract.setNegative (true);
   extract.filter (*xyzCloudPtrRansacFiltered);
 
   //get the points for the table
   //Possible TODO repeat until no more surfaces found?
-  extract.setInputCloud (xyzCloudPtrFiltered);
+  extract.setInputCloud (xyzCloudPtr);
   extract.setIndices (inliers);
   extract.setNegative (false);
   extract.filter (*xyzTableCloudPtrRansacFiltered);
@@ -220,8 +225,10 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     i++;
   }
 
-  ros::Time now = ros::Time::now();
-
+  ros::Time now = (ros::Time::now());//-(ros::Duration(0, 500000000));
+  //ROS_INFO("stamp: %d", now);
+  now = now-(ros::Duration(0, 500000000));
+  //ROS_INFO("stamp: %d", now);
 
   pcl::PCLPointCloud2 all_objectsPCL;
   sensor_msgs::PointCloud2 all_objects_output;

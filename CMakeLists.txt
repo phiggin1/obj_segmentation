@@ -145,7 +145,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 
 add_executable(segmentation src/segmentation.cpp)
-add_executable(cloud_plane src/cloud_plane.cpp)
+add_executable(segmentation_downsample src/segmentation_downsample.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,11 +157,11 @@ add_executable(cloud_plane src/cloud_plane.cpp)
 ## same as for the library above
 
 add_dependencies(segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(cloud_plane ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(segmentation_downsample ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(segmentation ${catkin_LIBRARIES})
-target_link_libraries(cloud_plane ${catkin_LIBRARIES})
+target_link_libraries(segmentation_downsample ${catkin_LIBRARIES})
 
 #############
 ## Install ##
